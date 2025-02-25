@@ -22,7 +22,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-- Make a .env file in this directory with the following variables:
+- Make a .env file in this directory with the following variables. You can also ask Sean Yu for his file for av-orin-nano-3:
 ```
 API_KEY=<your_api_key>
 API_KEY_ID=<your_api_key_id>
