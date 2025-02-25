@@ -16,6 +16,17 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+- Make a .env file in this directory with the following variables:
+```
+API_KEY=<your_api_key>
+API_KEY_ID=<your_api_key_id>
+PART_ID=<your_part_id>
+MACHINE_ADDRESS=<your_machine_address>
+ONVIF_USERNAME=<your_onvif_username>
+ONVIF_PASSWORD=<your_onvif_password>
+CAMERA_IP=<your_camera_ip>
+```
+
 ## Run the script and follow the instructions
 ```
 python3 ./script.py
