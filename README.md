@@ -2,7 +2,13 @@
 
 ## Overview
 
-This script is designed to streamline the release process for the `viamrtsp` module by guiding the user through a series of steps to ensure that the module is working as expected. It provides a structured approach to testing the module's functionality, helping to identify and resolve any issues or bugs.
+This script is designed to streamline the release process for the `viamrtsp` module by guiding the user through a series of steps to ensure that the module is working as expected. It hits on the points Rand initially suggested in the process Google Calendar event:
+
+- Test streaming on an h264, h265 camera on a pi and jetson.
+- Test reconfigure by changin rtp_passthrough to false
+- Test onvif Discovery Service
+- Test video store uploading videos using Data manager on a pi and jetson. Ensure video can be played and is expected.
+- Test video store re-configuring from default to "ultrafast encoding".
 
 ## Prerequisites
 - Download the robot config you want to test on in this working directory as `config.json`
