@@ -2,7 +2,8 @@ import asyncio
 import datetime
 import os
 import random
-from typing import Callable
+from typing import Callable, Dict, Optional, Any, List
+
 from dotenv import load_dotenv
 
 from viam.rpc.dial import DialOptions, Credentials
@@ -24,7 +25,7 @@ CAMERA_IP = os.getenv("CAMERA_IP")
 CAMERA_PORT = "554"
 
 
-def get_rtsp_address(channel=1) -> str:
+def get_rtsp_address(channel: int = 1) -> str:
     return f"rtsp://{ONVIF_USERNAME}:{ONVIF_PASSWORD}@{CAMERA_IP}:{CAMERA_PORT}/cam/realmonitor?channel={channel}&subtype=0"
 
 
@@ -47,7 +48,7 @@ async def connect_machine() -> RobotClient:
     return await RobotClient.at_address(MACHINE_ADDRESS, opts)
 
 
-def config_h2645(rtp_passthrough: bool, channel: int = 1) -> dict:
+def config_h2645(rtp_passthrough: bool, channel: int = 1) -> Dict[str, Any]:
     """
     Unless someone has changed it (somewhat likely unfortunately), the GOST camera should be h264 on channel 1
     and h265 and channel 2.
@@ -76,7 +77,7 @@ def config_h2645(rtp_passthrough: bool, channel: int = 1) -> dict:
     }
 
 
-def config_onvif() -> dict:
+def config_onvif() -> Dict[str, Any]:
     return {
         "components": [
             {
@@ -109,7 +110,7 @@ def config_onvif() -> dict:
     }
 
 
-def config_video_store(preset: str):
+def config_video_store(preset: str) -> Dict[str, Any]:
     return {
         "components": [
             {
@@ -175,12 +176,12 @@ def config_video_store(preset: str):
     }
 
 
-async def update_and_confirm(cloud: AppClient, part_id: str, name: str, config: dict, prompt: str):
+async def update_and_confirm(cloud: AppClient, part_id: str, name: str, config: Dict[str, Any], prompt: str) -> None:
     await cloud.update_robot_part(robot_part_id=part_id, name=name, robot_config=config)
     input(prompt)
 
 
-async def wait_for_resource(machine: RobotClient, resource_getter: Callable, resource_name: str):
+async def wait_for_resource(machine: RobotClient, resource_getter: Callable[[], Any], resource_name: str) -> Any:
     resource = None
     while not resource:
         try:
@@ -192,7 +193,7 @@ async def wait_for_resource(machine: RobotClient, resource_getter: Callable, res
     return resource
 
 
-async def safe_refresh_machine(machine: RobotClient):
+async def safe_refresh_machine(machine: RobotClient) -> None:
     """
     Safely refresh the machine connection, swallowing and logging any errors.
     """
@@ -202,7 +203,7 @@ async def safe_refresh_machine(machine: RobotClient):
         print(f"Got error while refreshing machine. Continuing anyway. Error: {e}")
 
 
-async def test_video_store_preset(cloud, part_id, robot_part_name, machine, preset, sleep_time=30):
+async def test_video_store_preset(cloud: AppClient, part_id: str, robot_part_name: str, machine: RobotClient, preset: str, sleep_time: int = 30) -> Camera:
     """Test video-store with a specific preset configuration."""
     print(f"Testing video-store with '{preset}' preset.")
     await update_and_confirm(cloud, part_id, robot_part_name, config_video_store(preset),
@@ -236,7 +237,7 @@ async def test_video_store_preset(cloud, part_id, robot_part_name, machine, pres
     return vid_store
 
 
-async def main():
+async def main() -> None:
     viam_client = await connect()
     cloud = viam_client.app_client
     part = await cloud.get_robot_part(robot_part_id=PART_ID)
