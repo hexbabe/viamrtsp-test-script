@@ -24,6 +24,8 @@ ONVIF_PASSWORD = os.getenv("ONVIF_PASSWORD")
 CAMERA_IP = os.getenv("CAMERA_IP")
 CAMERA_PORT = "554"
 
+EXEC_PATH = "/home/viam/video-store-in-viamrtsp-nick"
+
 
 def get_rtsp_address(channel: int = 1) -> str:
     return f"rtsp://{ONVIF_USERNAME}:{ONVIF_PASSWORD}@{CAMERA_IP}:{CAMERA_PORT}/cam/realmonitor?channel={channel}&subtype=0"
@@ -68,10 +70,9 @@ def config_h2645(rtp_passthrough: bool, channel: int = 1) -> Dict[str, Any]:
         ],
         "modules": [
             {
-                "type": "registry",
-                "name": "viam_viamrtsp",
-                "module_id": "viam:viamrtsp",
-                "version": "latest-with-prerelease"
+                "type": "local",
+                "name": "local-viamrtsp-mod",
+                "executable_path": EXEC_PATH
             }
         ]
     }
@@ -101,10 +102,9 @@ def config_onvif() -> Dict[str, Any]:
         ],
         "modules": [
             {
-                "type": "registry",
-                "name": "viam_viamrtsp",
-                "module_id": "viam:viamrtsp",
-                "version": "latest-with-prerelease"
+                "type": "local",
+                "name": "local-viamrtsp-mod",
+                "executable_path": EXEC_PATH
             }
         ]
     }
@@ -125,19 +125,16 @@ def config_video_store(preset: str) -> Dict[str, Any]:
             },
             {
                 "name": "video-store-1",
-                "api": "rdk:component:camera",
-                "model": "viam:video:storage",
+                "namespace": "rdk",
+                "type": "generic",
+                "model": "viam:viamrtsp:video-store",
                 "attributes": {
-                    "sync": "data-manager-1",
                     "storage": {"size_gb": 1},
                     "video": {
                         "preset": preset
                     },
                     "camera": "rtsp-cam-1"
-                },
-                "depends_on": [
-                    "data-manager-1"
-                ]
+                }
             }
         ],
         "services": [
@@ -161,16 +158,9 @@ def config_video_store(preset: str) -> Dict[str, Any]:
         ],
         "modules": [
             {
-                "type": "registry",
-                "name": "viam_viamrtsp",
-                "module_id": "viam:viamrtsp",
-                "version": "latest-with-prerelease"
-            },
-            {
-                "type": "registry",
-                "name": "viam_video-store",
-                "module_id": "viam:video-store",
-                "version": "latest"
+                "type": "local",
+                "name": "local-viamrtsp-mod",
+                "executable_path": EXEC_PATH
             }
         ]
     }
