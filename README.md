@@ -11,10 +11,6 @@ This script is designed to streamline the release process for the `viamrtsp` mod
 - Test video store reconfiguring from default to "ultrafast encoding".
 
 ## Prerequisites
-- Download the robot config you want to test on in this working directory as `config.json`
-```
-sudo curl -H "<key-id>" -H "key:<key>" "https://app.viam.com/api/json1/config?id=<robot_id>&client=true" -o ./config.json
-```
 - Start .venv and install dependencies
 ```
 python3 -m venv .venv
