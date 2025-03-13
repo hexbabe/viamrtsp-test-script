@@ -2,7 +2,7 @@ import asyncio
 import datetime
 import os
 import random
-from typing import Callable, Dict, Optional, Any, List
+from typing import Callable, Dict, Optional, Any, List, Literal
 
 from dotenv import load_dotenv
 
@@ -14,19 +14,28 @@ from viam.services.discovery import DiscoveryClient
 from viam.robot.client import RobotClient
 
 
+# Define valid RTSP stream types
+RTSPStreamType = Literal["h264", "h265"]
+
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 API_KEY_ID = os.getenv("API_KEY_ID")
 PART_ID = os.getenv("PART_ID")
 MACHINE_ADDRESS = os.getenv("MACHINE_ADDRESS")
-ONVIF_USERNAME = os.getenv("ONVIF_USERNAME")
-ONVIF_PASSWORD = os.getenv("ONVIF_PASSWORD")
-CAMERA_IP = os.getenv("CAMERA_IP")
-CAMERA_PORT = "554"
+H264_RTSP_ADDR = os.getenv("H264_RTSP_ADDR")
+H265_RTSP_ADDR = os.getenv("H265_RTSP_ADDR")
 
 
-def get_rtsp_address(channel: int = 1) -> str:
-    return f"rtsp://{ONVIF_USERNAME}:{ONVIF_PASSWORD}@{CAMERA_IP}:{CAMERA_PORT}/cam/realmonitor?channel={channel}&subtype=0"
+def get_rtsp_address(stream_type: RTSPStreamType = "h264") -> str:
+    rtsp_addr = {
+        "h264": H264_RTSP_ADDR,
+        "h265": H265_RTSP_ADDR
+    }.get(stream_type)
+    
+    if not rtsp_addr:
+        raise ValueError(f"Unsupported stream type: {stream_type}")
+    
+    return rtsp_addr
 
 
 async def connect() -> ViamClient:
@@ -48,10 +57,13 @@ async def connect_machine() -> RobotClient:
     return await RobotClient.at_address(MACHINE_ADDRESS, opts)
 
 
-def config_h2645(rtp_passthrough: bool, channel: int = 1) -> Dict[str, Any]:
+def config_h2645(rtp_passthrough: bool, stream_type: RTSPStreamType = "h264") -> Dict[str, Any]:
     """
-    Unless someone has changed it (somewhat likely unfortunately), the GOST camera should be h264 on channel 1
-    and h265 and channel 2.
+    Configure camera using specified RTSP stream type
+    
+    Args:
+        rtp_passthrough: Whether to enable RTP passthrough
+        stream_type: Type of RTSP stream ("h264" or "h265")
     """
     return {
         "components": [
@@ -62,7 +74,7 @@ def config_h2645(rtp_passthrough: bool, channel: int = 1) -> Dict[str, Any]:
                 "model": "viam:viamrtsp:rtsp",
                 "attributes": {
                     "rtp_passthrough": rtp_passthrough,
-                    "rtsp_address": get_rtsp_address(channel)
+                    "rtsp_address": get_rtsp_address(stream_type)
                 }
             }
         ],
@@ -244,17 +256,17 @@ async def main() -> None:
 
     # Test h264 stream with rtp_passthrough = True
     print("Setting config to have h264 camera with rtp_passthrough.")
-    await update_and_confirm(cloud, PART_ID, part.name, config_h2645(True, channel=1),
+    await update_and_confirm(cloud, PART_ID, part.name, config_h2645(True, stream_type="h264"),
                              "Please confirm that the stream works with rtp_passthrough before continuing.")
 
     # Test h264 stream with rtp_passthrough = False
     print("Cool. Moving onto without passthrough.")
-    await update_and_confirm(cloud, PART_ID, part.name, config_h2645(False, channel=1),
+    await update_and_confirm(cloud, PART_ID, part.name, config_h2645(False, stream_type="h264"),
                              "Please confirm that the stream works without rtp_passthrough before continuing.")
 
-    # Test h265 stream (using channel 2 with passthrough True)
+    # Test h265 stream with passthrough True
     print("Ok now testing stream with h265.")
-    await update_and_confirm(cloud, PART_ID, part.name, config_h2645(True, channel=2),
+    await update_and_confirm(cloud, PART_ID, part.name, config_h2645(True, stream_type="h265"),
                              "Please confirm that the h265 stream works.")
 
     # Test ONVIF discovery
